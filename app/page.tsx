@@ -1,12 +1,13 @@
- "use client";
+"use client";
 
 import { WidmarkCalculator } from "@/components/calculator/widmark-calculator";
+import { HangoverSeoContent } from "@/components/seo/hangover-seo-content";
 import { AlertTriangle } from "lucide-react";
 
 export default function HomePage() {
   return (
     <main className="w-full">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 pb-16">
         <header className="mt-2 flex flex-col gap-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-900/60 p-5 shadow-soft ring-1 ring-white/10 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="inline-flex items-center gap-1 rounded-full bg-black/40 px-3 py-1 text-[11px] font-medium text-emerald-200 ring-1 ring-emerald-500/40">
@@ -42,9 +43,10 @@ export default function HomePage() {
         </header>
 
         <WidmarkCalculator />
+
+        <HangoverSeoContent />
       </div>
     </main>
   );
 }
-
 
