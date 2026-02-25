@@ -1,0 +1,13 @@
+{
+  // Cloudflare Worker project name
+  "name": "sober-calc",
+
+  // Main entrypoint for your Next.js/Worker bundle (adjust if needed)
+  "main": "dist/worker.mjs",
+
+  // Environment bindings or references
+  "vars": {
+    "WORKER_SELF_REFERENCE": "sober-calc"
+  }
+}
+
