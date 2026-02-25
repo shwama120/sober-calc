@@ -14,6 +14,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
+      <head>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2928942109825268"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="min-h-screen bg-background text-white">
         <div className="flex min-h-screen flex-col items-center justify-center px-4 py-8">
           {children}
