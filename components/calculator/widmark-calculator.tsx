@@ -19,6 +19,9 @@ const WINE_GRAMS_PER_GLASS = 12; // 와인 120mL 한 잔(12도 내외)
 const WHISKY_GRAMS_PER_SHOT = 14; // 위스키 45mL 한 잔(40도 내외)
 const STANDARD_DRINK_GRAMS = 10; // 기타 표준잔 1잔 기준
 
+const BETA = 0.015; // 시간당 감소량 (g/dL)
+const LEGAL_LIMIT = 0.03; // 한국 도로교통법 혈중 알코올 농도 기준(예시)
+
 function calculateWidmark(
   weightKg: number,
   gender: Gender,
@@ -30,14 +33,53 @@ function calculateWidmark(
 
   const r = gender === "male" ? 0.68 : 0.55;
   const bac0 = (totalGrams / (weightKg * r)) / 10; // g/dL
-  const beta = 0.015; // 시간당 감소량 (g/dL)
 
-  const hoursToZero = Math.max(0, bac0 / beta);
+  const hoursToZero = Math.max(0, bac0 / BETA);
   const totalMinutes = Math.round(hoursToZero * 60);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
 
   return { hours, minutes, bac: bac0 };
+}
+
+function getStatus(bac: number) {
+  if (bac >= 0.08) {
+    return {
+      level: "danger",
+      title: "운전 절대 불가",
+      description:
+        "혈중 알코올 농도가 법적 처벌 수준으로 추정됩니다. 신체·인지 기능이 크게 떨어져 있으며, 운전은 물론 중요한 의사결정도 피하는 것이 안전합니다.",
+      badge: "고위험"
+    };
+  }
+
+  if (bac >= LEGAL_LIMIT) {
+    return {
+      level: "warning",
+      title: "운전 금지 · 휴식 필요",
+      description:
+        "법적 기준(0.03%)을 초과한 상태로 추정됩니다. 운전은 절대 금지이며, 충분한 휴식과 시간 경과가 필요합니다.",
+      badge: "주의"
+    };
+  }
+
+  if (bac > 0) {
+    return {
+      level: "caution",
+      title: "주의 단계 · 대중교통 권장",
+      description:
+        "법적 기준 이하는 아닐 수 있지만, 개인에 따라 반응 속도와 집중력이 떨어질 수 있는 구간입니다. 가능하면 대중교통이나 대리를 이용하세요.",
+      badge: "주의"
+    };
+  }
+
+  return {
+    level: "info",
+    title: "이론상 알코올 분해 완료",
+    description:
+      "위드마크 공식 기준으로는 체내 알코올이 거의 분해된 상태로 추정됩니다. 다만 숙취, 피로감 등은 여전히 남아 있을 수 있습니다.",
+    badge: "참고"
+  };
 }
 
 export function WidmarkCalculator() {
@@ -86,6 +128,16 @@ export function WidmarkCalculator() {
   const hasError =
     submitted && (!numericWeight || numericWeight <= 0 || totalGrams <= 0);
 
+  const status = result ? getStatus(result.bac) : null;
+
+  const legalTime =
+    result && result.bac > LEGAL_LIMIT
+      ? Math.max(0, (result.bac - LEGAL_LIMIT) / BETA)
+      : 0;
+  const legalMinutes = Math.round(legalTime * 60);
+  const legalHoursPart = Math.floor(legalMinutes / 60);
+  const legalMinutesPart = legalMinutes % 60;
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 md:flex-row">
       <section className="flex-1 space-y-4">
@@ -128,7 +180,7 @@ export function WidmarkCalculator() {
                   <button
                     type="button"
                     onClick={() => setGender("male")}
-                    className={`px-4 py-1.5 text-xs font-medium transition ${
+                    className={`px-4 py-2 text-[13px] font-medium transition md:text-xs ${
                       gender === "male"
                         ? "rounded-full bg-white text-black shadow"
                         : "text-gray-400 hover:text-gray-200"
@@ -139,7 +191,7 @@ export function WidmarkCalculator() {
                   <button
                     type="button"
                     onClick={() => setGender("female")}
-                    className={`px-4 py-1.5 text-xs font-medium transition ${
+                    className={`px-4 py-2 text-[13px] font-medium transition md:text-xs ${
                       gender === "female"
                         ? "rounded-full bg-white text-black shadow"
                         : "text-gray-400 hover:text-gray-200"
@@ -295,7 +347,7 @@ export function WidmarkCalculator() {
             <div className="md:col-span-2">
               <button
                 type="submit"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-400 px-4 py-2.5 text-sm font-semibold text-black shadow-lg shadow-emerald-500/30 transition hover:from-emerald-400 hover:to-teal-300"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-400 px-4 py-3 text-sm font-semibold text-black shadow-lg shadow-emerald-500/30 transition hover:from-emerald-400 hover:to-teal-300 md:text-sm"
               >
                 <ShieldCheck className="h-4 w-4" />
                 <span>혈중 알코올 농도 & 해소 시간 계산하기</span>
@@ -370,6 +422,51 @@ export function WidmarkCalculator() {
                   </span>
                 </p>
               </div>
+
+              {status && (
+                <div className="mt-3 rounded-xl bg-black/40 p-4 ring-1 ring-white/10">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      {status.level === "danger" || status.level === "warning" ? (
+                        <AlertTriangle className="h-4 w-4 text-red-400" />
+                      ) : (
+                        <ShieldCheck className="h-4 w-4 text-emerald-300" />
+                      )}
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
+                        현재 상태(추정)
+                      </p>
+                    </div>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        status.level === "danger"
+                          ? "bg-red-900/60 text-red-100 ring-1 ring-red-500/60"
+                          : status.level === "warning"
+                          ? "bg-amber-900/50 text-amber-100 ring-1 ring-amber-500/60"
+                          : "bg-emerald-900/40 text-emerald-100 ring-1 ring-emerald-500/50"
+                      }`}
+                    >
+                      {status.badge}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm font-semibold text-white">
+                    {status.title}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-gray-400">
+                    {status.description}
+                  </p>
+                  {legalTime > 0 && (
+                    <p className="mt-2 text-[11px] text-gray-400">
+                      법적 기준인{" "}
+                      <span className="font-semibold">0.03% 이하</span>까지
+                      도달하려면 최소{" "}
+                      <span className="font-semibold text-emerald-200">
+                        {legalHoursPart}시간 {legalMinutesPart}분 이상
+                      </span>
+                      의 추가 시간이 더 필요하다고 추정됩니다.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="mt-3 rounded-lg bg-red-950/40 px-3 py-2 text-[11px] text-red-100 ring-1 ring-red-500/40">
                 <p className="font-semibold">주의</p>
