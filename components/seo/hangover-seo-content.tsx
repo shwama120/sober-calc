@@ -227,6 +227,92 @@ export function HangoverSeoContent() {
           달라집니다.
         </p>
       </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-white md:text-xl">
+          혈중 알코올 농도란 무엇인가?
+        </h2>
+        <p className="text-sm leading-relaxed text-gray-300">
+          혈중 알코올 농도(BAC, Blood Alcohol Concentration)는{" "}
+          <span className="font-semibold">
+            혈액 100mL(또는 1dL) 안에 포함된 알코올의 양
+          </span>
+          을 의미합니다. 예를 들어 BAC 0.05%는 혈액 100mL당 0.05g의 알코올이
+          녹아 있다는 뜻입니다.
+        </p>
+        <p className="text-sm leading-relaxed text-gray-300">
+          일반적으로 BAC 수치가 올라갈수록{" "}
+          <span className="font-semibold">판단력 저하, 반응 속도 지연</span>,
+          균형 감각 저하, 졸음, 감정 기복 등의 증상이 나타날 수 있습니다. 같은
+          양을 마셔도 체중, 성별, 간 기능, 음주 속도에 따라 BAC는 크게
+          달라집니다.
+        </p>
+        <ul className="list-disc space-y-1 pl-5 text-[13px] text-gray-300">
+          <li>
+            <span className="font-semibold">0.03% 전후</span>: 가벼운 기분 고양,
+            주의력 일부 저하.
+          </li>
+          <li>
+            <span className="font-semibold">0.05~0.08%</span>: 반응 속도 지연,
+            시야·균형 감각 저하, 운전 능력 명백히 감소.
+          </li>
+          <li>
+            <span className="font-semibold">0.1% 이상</span>: 보행 장애, 발음
+            불명확, 사고·부상 위험 급증.
+          </li>
+        </ul>
+        <p className="text-[11px] text-gray-500">
+          위 범위는 다양한 연구 결과를 단순화한 예시로,{" "}
+          <span className="font-semibold">
+            개인에 따라 훨씬 낮은 농도에서도 위험한 상태가 될 수 있습니다.
+          </span>
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-white md:text-xl">
+          숙취를 빨리 깨는 법? (사실과 오해)
+        </h2>
+        <p className="text-sm leading-relaxed text-gray-300">
+          숙취를 빨리 없애는 &quot;마법 같은 방법&quot;은 존재하지 않습니다.{" "}
+          <span className="font-semibold">
+            간이 알코올을 분해하는 속도에는 한계
+          </span>
+          가 있으며, 위드마크 공식에서 사용하는 분해 속도(시간당 약 0.015
+          g/dL) 또한 평균적인 추정값일 뿐입니다.
+        </p>
+        <ul className="list-disc space-y-1 pl-5 text-[13px] text-gray-300">
+          <li>
+            <span className="font-semibold">샤워나 운동</span>만으로 알코올이 빨리
+            분해되지는 않습니다. 일시적으로 상쾌함을 느낄 수 있지만,{" "}
+            <span className="font-semibold">BAC 자체는 거의 변하지 않습니다.</span>
+          </li>
+          <li>
+            <span className="font-semibold">커피</span>를 마신다고 해서 술이 깨는
+            것은 아닙니다. 카페인이 졸음을 잠시 덜 느끼게 할 수는 있지만,{" "}
+            <span className="font-semibold">여전히 음주 상태</span>
+            일 수 있습니다.
+          </li>
+          <li>
+            <span className="font-semibold">해장국, 숙취 해소제</span> 등은 속을
+            편하게 해 줄 수는 있지만,{" "}
+            <span className="font-semibold">
+              혈중 알코올 농도를 직접 낮추지는 못합니다.
+            </span>
+          </li>
+        </ul>
+        <p className="text-sm leading-relaxed text-gray-300">
+          숙취를 줄이기 위해서는{" "}
+          <span className="font-semibold">
+            충분한 시간, 수분 섭취, 가벼운 식사, 휴식·수면
+          </span>
+          이 가장 중요합니다. 무엇보다도{" "}
+          <span className="font-semibold text-red-300">
+            &quot;좀 괜찮아진 것 같다&quot;는 느낌만으로 운전대를 잡지 않는 것
+          </span>
+          이 가장 확실한 예방법입니다.
+        </p>
+      </section>
     </article>
   );
 }
