@@ -1,93 +1,50 @@
-"use client";
+ "use client";
 
-import { useState } from "react";
-import { Scissors, Sparkles } from "lucide-react";
-import { Gender, GenderToggle } from "@/components/ui/gender-toggle";
-import { PhotoUploadCard } from "@/components/upload/photo-upload-card";
+import { WidmarkCalculator } from "@/components/calculator/widmark-calculator";
+import { AlertTriangle } from "lucide-react";
 
 export default function HomePage() {
-  const [gender, setGender] = useState<Gender | null>(null);
-  const [hasPhoto, setHasPhoto] = useState(false);
-
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-8">
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-surface-soft/80 px-3 py-1 text-[11px] font-medium text-accent-soft ring-1 ring-white/10">
-            <Sparkles className="h-3.5 w-3.5 text-white" />
-            <span>미용실 가기 전, 나에게 가장 잘 어울리는 헤어스타일 찾기</span>
+    <main className="w-full">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+        <header className="mt-2 flex flex-col gap-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-900/60 p-5 shadow-soft ring-1 ring-white/10 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="inline-flex items-center gap-1 rounded-full bg-black/40 px-3 py-1 text-[11px] font-medium text-emerald-200 ring-1 ring-emerald-500/40">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+              Soolkkae · 숙취 해소 도우미
+            </p>
+            <h1 className="mt-3 text-2xl font-semibold tracking-tight text-white md:text-3xl">
+              숙취 해소용 혈중 알코올 계산기
+            </h1>
+            <p className="mt-2 text-sm text-gray-300 md:text-[15px]">
+              오늘 마신{" "}
+              <span className="font-semibold">
+                술의 종류와 양, 내 몸 상태(성별·몸무게)
+              </span>
+              를 기반으로 위드마크 공식으로 혈중 알코올 농도와{" "}
+              <span className="font-semibold">해소까지 필요한 최소 시간</span>을
+              추정해 드립니다.
+            </p>
           </div>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-white md:text-3xl">
-            My Vibe Studio
-          </h1>
-          <p className="mt-2 text-sm text-accent-soft md:text-[15px]">
-            AI가 얼굴은 그대로 유지한 채, 다양한 헤어스타일만 자연스럽게
-            바꿔 보여주는 가상 체험 서비스입니다.
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-3">
-          <GenderToggle value={gender ?? undefined} onChange={setGender} />
-          <p className="text-[11px] text-accent-soft">
-            성별 선택에 따라 추천 헤어스타일이 달라집니다.
-          </p>
-        </div>
-      </header>
-
-      <section className="grid gap-5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)]">
-        <PhotoUploadCard
-          onImageChange={(file) => {
-            setHasPhoto(!!file);
-          }}
-        />
-
-        <div className="relative overflow-hidden rounded-2xl bg-surface p-[1px] shadow-soft">
-          <div className="flex h-full flex-col rounded-2xl bg-gradient-to-b from-surface-soft/80 to-surface-soft/40 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.22em] text-accent-soft">
-                  STEP 2
-                </p>
-                <p className="mt-1 text-sm font-semibold text-white">
-                  헤어스타일 추천 프리뷰
-                </p>
-              </div>
-              <div className="inline-flex items-center gap-1 rounded-full bg-black/40 px-3 py-1 text-[11px] text-accent-soft ring-1 ring-white/10">
-                <Scissors className="h-3.5 w-3.5" />
-                <span>AI 헤어 체인지</span>
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-1 items-center justify-center rounded-xl border border-dashed border-white/15 bg-black/20 px-4 py-6 text-center">
-              {!gender ? (
-                <p className="text-sm text-accent-soft">
-                  먼저{" "}
-                  <span className="font-medium text-white">성별을 선택</span>한
-                  뒤, 얼굴 정면 사진을 업로드하면
-                  <br />
-                  내 얼굴은 그대로, 헤어스타일만 바뀐 결과를 볼 수 있어요.
-                </p>
-              ) : !hasPhoto ? (
-                <p className="text-sm text-accent-soft">
-                  {gender === "female"
-                    ? "여성"
-                    : "남성"}{" "}
-                  헤어스타일 기반으로 준비 중입니다.
-                  <br />
-                  사진을 업로드하면 나에게 어울리는 스타일을 제안해 드릴게요.
-                </p>
-              ) : (
-                <p className="text-sm text-accent-soft">
-                  사진 업로드까지 완료되었습니다.
-                  <br />
-                  다음 단계에서 선택한 성별에 맞는 다양한 헤어스타일 리스트와
-                  Before/After 비교 슬라이더가 나타날 예정입니다.
-                </p>
-              )}
+          <div className="flex items-start gap-2 rounded-xl bg-red-900/25 px-4 py-3 text-xs text-red-100 ring-1 ring-red-500/40">
+            <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            <div>
+              <p className="font-semibold">중요 안내</p>
+              <p className="mt-1 text-[11px] leading-relaxed">
+                이 계산기는 참고용 도구일 뿐입니다.{" "}
+                <span className="font-semibold">
+                  결과와 상관없이 &quot;술을 한 잔이라도 마셨다면&quot; 절대
+                  운전하지 마세요.
+                </span>
+              </p>
             </div>
           </div>
-        </div>
-      </section>
+        </header>
+
+        <WidmarkCalculator />
+      </div>
     </main>
   );
 }
+
 

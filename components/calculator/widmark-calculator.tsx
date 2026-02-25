@@ -12,18 +12,24 @@ interface Result {
   bac: number;
 }
 
+// 단순화를 위한 주종별 1단위(잔/캔/잔)당 알코올 양(g) 추정값
+const SOJU_GRAMS_PER_SHOT = 8; // 소주 1잔(약 50mL, 16도 내외)
+const BEER_GRAMS_PER_GLASS = 18; // 맥주 500mL 한 잔(4.5도 내외)
+const WINE_GRAMS_PER_GLASS = 12; // 와인 120mL 한 잔(12도 내외)
+const WHISKY_GRAMS_PER_SHOT = 14; // 위스키 45mL 한 잔(40도 내외)
+const STANDARD_DRINK_GRAMS = 10; // 기타 표준잔 1잔 기준
+
 function calculateWidmark(
   weightKg: number,
   gender: Gender,
-  standardDrinks: number
+  totalGrams: number
 ): Result | null {
-  if (!weightKg || !standardDrinks || weightKg <= 0 || standardDrinks <= 0) {
+  if (!weightKg || !totalGrams || weightKg <= 0 || totalGrams <= 0) {
     return null;
   }
 
-  const grams = standardDrinks * 10; // 1표준잔 ≈ 10g 알코올(가정)
   const r = gender === "male" ? 0.68 : 0.55;
-  const bac0 = (grams / (weightKg * r)) / 10; // g/dL
+  const bac0 = (totalGrams / (weightKg * r)) / 10; // g/dL
   const beta = 0.015; // 시간당 감소량 (g/dL)
 
   const hoursToZero = Math.max(0, bac0 / beta);
@@ -37,20 +43,39 @@ function calculateWidmark(
 export function WidmarkCalculator() {
   const [gender, setGender] = useState<Gender>("male");
   const [weight, setWeight] = useState<string>("");
-  const [drinks, setDrinks] = useState<string>("");
+  const [sojuShots, setSojuShots] = useState<string>("");
+  const [beerGlasses, setBeerGlasses] = useState<string>("");
+  const [wineGlasses, setWineGlasses] = useState<string>("");
+  const [whiskyShots, setWhiskyShots] = useState<string>("");
+  const [standardDrinks, setStandardDrinks] = useState<string>("");
   const [submitted, setSubmitted] = useState(false);
 
   const numericWeight = Number(weight.replace(",", "."));
-  const numericDrinks = Number(drinks.replace(",", "."));
+  const numericSoju = Number(sojuShots.replace(",", ".")) || 0;
+  const numericBeer = Number(beerGlasses.replace(",", ".")) || 0;
+  const numericWine = Number(wineGlasses.replace(",", ".")) || 0;
+  const numericWhisky = Number(whiskyShots.replace(",", ".")) || 0;
+  const numericStandard = Number(standardDrinks.replace(",", ".")) || 0;
+
+  const totalGrams = useMemo(() => {
+    const gramsFromSoju = numericSoju * SOJU_GRAMS_PER_SHOT;
+    const gramsFromBeer = numericBeer * BEER_GRAMS_PER_GLASS;
+    const gramsFromWine = numericWine * WINE_GRAMS_PER_GLASS;
+    const gramsFromWhisky = numericWhisky * WHISKY_GRAMS_PER_SHOT;
+    const gramsFromStandard = numericStandard * STANDARD_DRINK_GRAMS;
+
+    return (
+      gramsFromSoju +
+      gramsFromBeer +
+      gramsFromWine +
+      gramsFromWhisky +
+      gramsFromStandard
+    );
+  }, [numericSoju, numericBeer, numericWine, numericWhisky, numericStandard]);
 
   const result = useMemo(
-    () =>
-      calculateWidmark(
-        numericWeight || 0,
-        gender,
-        numericDrinks || 0
-      ),
-    [numericWeight, numericDrinks, gender]
+    () => calculateWidmark(numericWeight || 0, gender, totalGrams),
+    [numericWeight, gender, totalGrams]
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -59,11 +84,7 @@ export function WidmarkCalculator() {
   };
 
   const hasError =
-    submitted &&
-    (!numericWeight ||
-      !numericDrinks ||
-      numericWeight <= 0 ||
-      numericDrinks <= 0);
+    submitted && (!numericWeight || numericWeight <= 0 || totalGrams <= 0);
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 md:flex-row">
@@ -72,17 +93,21 @@ export function WidmarkCalculator() {
           <header className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400">
-                전국민 숙취 해소 계산기
+                Soolkkae · 숙취 해소 계산기
               </p>
               <h1 className="mt-2 text-xl font-semibold text-white md:text-2xl">
-                알코올 분해 예상 시간 계산
+                혈중 알코올 농도 & 해소 시간
               </h1>
               <p className="mt-1 text-sm text-gray-400">
-                위드마크 공식을 기반으로 혈중 알코올 농도와 분해에 필요한
-                시간을 추정합니다.{" "}
+                성별, 몸무게, 마신 술의{" "}
                 <span className="font-medium text-gray-200">
-                  결과와 상관없이 절대 음주운전을 하지 마세요.
+                  종류와 양
                 </span>
+                을 기반으로 위드마크 공식으로 혈중 알코올 농도와{" "}
+                <span className="font-medium text-gray-200">
+                  해소에 필요한 최소 시간
+                </span>
+                을 추정합니다.
               </p>
             </div>
             <div className="hidden rounded-full bg-red-900/25 px-3 py-1 text-[11px] font-medium text-red-200 ring-1 ring-red-500/40 md:inline-flex">
@@ -92,87 +117,178 @@ export function WidmarkCalculator() {
 
           <form
             onSubmit={handleSubmit}
-            className="mt-5 grid gap-4 md:grid-cols-2"
+            className="mt-5 space-y-4 text-sm text-gray-100"
           >
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-gray-300">
-                성별
-              </label>
-              <div className="inline-flex rounded-full bg-black/40 p-1 ring-1 ring-white/10">
-                <button
-                  type="button"
-                  onClick={() => setGender("male")}
-                  className={`px-4 py-1.5 text-xs font-medium transition ${
-                    gender === "male"
-                      ? "rounded-full bg-white text-black shadow"
-                      : "text-gray-400 hover:text-gray-200"
-                  }`}
-                >
-                  남성
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGender("female")}
-                  className={`px-4 py-1.5 text-xs font-medium transition ${
-                    gender === "female"
-                      ? "rounded-full bg-white text-black shadow"
-                      : "text-gray-400 hover:text-gray-200"
-                  }`}
-                >
-                  여성
-                </button>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-gray-300">
+                  성별
+                </label>
+                <div className="inline-flex rounded-full bg-black/40 p-1 ring-1 ring-white/10">
+                  <button
+                    type="button"
+                    onClick={() => setGender("male")}
+                    className={`px-4 py-1.5 text-xs font-medium transition ${
+                      gender === "male"
+                        ? "rounded-full bg-white text-black shadow"
+                        : "text-gray-400 hover:text-gray-200"
+                    }`}
+                  >
+                    남성
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGender("female")}
+                    className={`px-4 py-1.5 text-xs font-medium transition ${
+                      gender === "female"
+                        ? "rounded-full bg-white text-black shadow"
+                        : "text-gray-400 hover:text-gray-200"
+                    }`}
+                  >
+                    여성
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center justify-between text-xs font-medium text-gray-300">
+                  몸무게
+                  <span className="text-[11px] font-normal text-gray-500">
+                    kg 단위로 입력
+                  </span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min={1}
+                    step="0.1"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    className="h-10 w-full rounded-lg border border-white/10 bg-black/40 px-3 pr-10 text-sm text-white outline-none ring-offset-0 transition focus:border-white/40 focus:ring-1 focus:ring-white/40"
+                    placeholder="예: 70"
+                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-gray-500">
+                    kg
+                  </span>
+                </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center justify-between text-xs font-medium text-gray-300">
-                몸무게
-                <span className="text-[11px] font-normal text-gray-500">
-                  kg 단위로 입력
-                </span>
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min={1}
-                  step="0.1"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-white/10 bg-black/40 px-3 pr-10 text-sm text-white outline-none ring-offset-0 transition focus:border-white/40 focus:ring-1 focus:ring-white/40"
-                  placeholder="예: 70"
-                />
-                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-gray-500">
-                  kg
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-gray-300">
+                  마신 술의 종류와 양
+                </label>
+                <span className="text-[11px] text-gray-500">
+                  빈 칸은 0으로 취급됩니다.
                 </span>
               </div>
-            </div>
 
-            <div className="space-y-2 md:col-span-2">
-              <label className="flex items-center justify-between text-xs font-medium text-gray-300">
-                마신 술의 양
-                <span className="text-[11px] font-normal text-gray-500">
-                  소주 한 잔(또는 맥주 한 캔) ≈ 1잔으로 가정
-                </span>
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min={0}
-                  step="0.5"
-                  value={drinks}
-                  onChange={(e) => setDrinks(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-white/10 bg-black/40 px-3 pr-10 text-sm text-white outline-none ring-offset-0 transition focus:border-white/40 focus:ring-1 focus:ring-white/40"
-                  placeholder="예: 5 (잔)"
-                />
-                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-gray-500">
-                  잔
-                </span>
+              <div className="overflow-hidden rounded-xl border border-white/10 bg-black/40 text-xs">
+                <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.3fr)] border-b border-white/10 bg-white/[0.03] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-400">
+                  <div>주종</div>
+                  <div className="text-right">개수</div>
+                  <div className="text-right">1개당 알코올 양(대략)</div>
+                </div>
+
+                <div className="divide-y divide-white/10">
+                  <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.3fr)] items-center px-3 py-2">
+                    <div className="text-sm text-gray-100">소주</div>
+                    <div className="text-right">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.5"
+                        value={sojuShots}
+                        onChange={(e) => setSojuShots(e.target.value)}
+                        className="h-8 w-20 rounded-md border border-white/10 bg-black/50 px-2 text-right text-xs text-white outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="text-right text-[11px] text-gray-400">
+                      1잔(약 50mL) ≈ {SOJU_GRAMS_PER_SHOT}g
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.3fr)] items-center px-3 py-2">
+                    <div className="text-sm text-gray-100">맥주</div>
+                    <div className="text-right">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.5"
+                        value={beerGlasses}
+                        onChange={(e) => setBeerGlasses(e.target.value)}
+                        className="h-8 w-20 rounded-md border border-white/10 bg-black/50 px-2 text-right text-xs text-white outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="text-right text-[11px] text-gray-400">
+                      500mL 한 잔 ≈ {BEER_GRAMS_PER_GLASS}g
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.3fr)] items-center px-3 py-2">
+                    <div className="text-sm text-gray-100">와인</div>
+                    <div className="text-right">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.5"
+                        value={wineGlasses}
+                        onChange={(e) => setWineGlasses(e.target.value)}
+                        className="h-8 w-20 rounded-md border border-white/10 bg-black/50 px-2 text-right text-xs text-white outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="text-right text-[11px] text-gray-400">
+                      1잔(약 120mL) ≈ {WINE_GRAMS_PER_GLASS}g
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.3fr)] items-center px-3 py-2">
+                    <div className="text-sm text-gray-100">위스키/양주</div>
+                    <div className="text-right">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.5"
+                        value={whiskyShots}
+                        onChange={(e) => setWhiskyShots(e.target.value)}
+                        className="h-8 w-20 rounded-md border border-white/10 bg-black/50 px-2 text-right text-xs text-white outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="text-right text-[11px] text-gray-400">
+                      1잔(약 45mL) ≈ {WHISKY_GRAMS_PER_SHOT}g
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.3fr)] items-center px-3 py-2">
+                    <div className="text-sm text-gray-100">기타(표준잔)</div>
+                    <div className="text-right">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.5"
+                        value={standardDrinks}
+                        onChange={(e) => setStandardDrinks(e.target.value)}
+                        className="h-8 w-20 rounded-md border border-white/10 bg-black/50 px-2 text-right text-xs text-white outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="text-right text-[11px] text-gray-400">
+                      표준잔 1잔 ≈ {STANDARD_DRINK_GRAMS}g
+                    </div>
+                  </div>
+                </div>
               </div>
+
               <p className="mt-1 text-[11px] text-gray-500">
-                실제 알코올 도수, 마시는 속도, 체질 등에 따라{" "}
-                <span className="font-medium text-gray-300">
-                  결과는 참고용일 뿐입니다.
-                </span>
+                위 수치는 일반적인 주종의 도수와 잔 크기를 단순화한{" "}
+                <span className="font-medium text-gray-300">예시 값</span>
+                입니다. 실제 알코올 양과 해소 시간은 사람마다 크게 달라질 수
+                있습니다.
               </p>
             </div>
 
@@ -182,21 +298,21 @@ export function WidmarkCalculator() {
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-400 px-4 py-2.5 text-sm font-semibold text-black shadow-lg shadow-emerald-500/30 transition hover:from-emerald-400 hover:to-teal-300"
               >
                 <ShieldCheck className="h-4 w-4" />
-                <span>알코올 분해 예상 시간 계산하기</span>
+                <span>혈중 알코올 농도 & 해소 시간 계산하기</span>
               </button>
             </div>
-          </form>
 
-        {hasError && (
-          <div className="mt-4 flex items-start gap-2 rounded-lg bg-red-950/40 px-3 py-2 text-xs text-red-100 ring-1 ring-red-500/40">
-            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
-            <p>
-              몸무게와 마신 술의 양을 모두 올바르게 입력해 주세요. 이 계산기는
-              참고용 도구이며, 실제 음주 상태나 운전 가능 여부를 보장하지
-              않습니다.
-            </p>
-          </div>
-        )}
+            {hasError && (
+              <div className="mt-2 flex items-start gap-2 rounded-lg bg-red-950/40 px-3 py-2 text-xs text-red-100 ring-1 ring-red-500/40">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+                <p>
+                  몸무게와 마신 술의 양을 모두 올바르게 입력해 주세요. 이
+                  계산기는 참고용 도구이며, 실제 음주 상태나 운전 가능 여부를
+                  보장하지 않습니다.
+                </p>
+              </div>
+            )}
+          </form>
         </div>
 
         <div className="mt-3">
