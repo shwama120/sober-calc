@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Venus, Mars } from "lucide-react";
+import { UserRound } from "lucide-react";
 import { useState } from "react";
 
 export type Gender = "male" | "female";
@@ -11,9 +11,14 @@ interface GenderToggleProps {
   onChange?: (value: Gender) => void;
 }
 
-const options: { value: Gender; label: string; icon: typeof Venus }[] = [
-  { value: "female", label: "여성", icon: Venus },
-  { value: "male", label: "남성", icon: Mars }
+type GenderIcon = typeof UserRound;
+
+const FemaleIcon: GenderIcon = UserRound;
+const MaleIcon: GenderIcon = UserRound;
+
+const options: { value: Gender; label: string; icon: GenderIcon }[] = [
+  { value: "female", label: "여성", icon: FemaleIcon },
+  { value: "male", label: "남성", icon: MaleIcon }
 ];
 
 export function GenderToggle({ value, onChange }: GenderToggleProps) {
